@@ -1,0 +1,34 @@
+name: Morango Integration Tests
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Run every Sunday at midnight UTC
+
+jobs:
+  morango_integration_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Install dependencies
+        run: |
+          pip install tox
+          pip install psycopg2-binary  # Install PostgreSQL driver
+
+      - name: Run Morango Integration Tests with SQLite
+        env:
+          INTEGRATION_TEST: true
+        run: tox -e morango-integration-sqlite
+
+      - name: Run Morango Integration Tests with PostgreSQL
+        if: success()
+        env:
+          INTEGRATION_TEST: true
+        run: make test-with-postgres
